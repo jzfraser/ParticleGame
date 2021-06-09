@@ -13,3 +13,11 @@ to learn more C++ and SFML.
 * Water: Flows down and to the sides
 * Wood: Stationary and flammable
 * Fire: Burns up any flammable particles nearby
+
+### Upcoming Additions:
+
+* Buttons to change particle type being drawn
+* Ability to erase particles
+* Hopefully slightly better visuals for fire
+* Smoke particle
+* Acid particle
