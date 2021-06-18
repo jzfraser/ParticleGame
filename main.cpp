@@ -2,6 +2,7 @@
 #include <SFML/System.hpp>
 #include <iostream>
 #include "include/Grid.hpp"
+#include "include/Button.hpp"
 
 const uint32_t WIN_WIDTH = 800;
 const uint32_t WIN_HEIGHT = 600;
@@ -59,9 +60,16 @@ int main() {
     sf::RenderWindow window(sf::VideoMode(WIN_WIDTH, WIN_HEIGHT), "Sand Game");
     window.setFramerateLimit(60);
     sf::Clock deltaClock;
+    sf::Font droidSansMono;
+    droidSansMono.loadFromFile("../include/DroidSansMono.ttf");
+
     Grid world = Grid(WORLD_SIZE);
+
     bool spawning = false;
     ParticleType spawnType = EMPTY;
+    Button btnSand("Sand", {50, 25}, 15, sf::Color::White, sf::Color::Black);
+    btnSand.setFont(droidSansMono);
+    btnSand.setPosition({740, 10});
 
     while (window.isOpen()) {
         float dt = deltaClock.restart().asSeconds();
@@ -72,20 +80,24 @@ int main() {
             if (event.type == sf::Event::Closed)
                 window.close();
             if (event.type == sf::Event::MouseButtonPressed) {
-                switch (event.mouseButton.button) {
-                    case sf::Mouse::Button::Left:
-                        spawnType = FIRE;
-                        break;
-                    case sf::Mouse::Button::Right:
-                        spawnType = SAND;
-                        break;
-                    case sf::Mouse::Button::Middle:
-                        spawnType = WOOD;
-                        break;
-                    default:
-                        spawnType = SAND;
+                if (btnSand.isMouseOver(window)) {
+                    spawnType = SAND;
+                } else {
+                    spawning = true;
                 }
-                spawning = true;
+                // switch (event.mouseButton.button) {
+                //     case sf::Mouse::Button::Left:
+                //         spawnType = FIRE;
+                //         break;
+                //     case sf::Mouse::Button::Right:
+                //         spawnType = SAND;
+                //         break;
+                //     case sf::Mouse::Button::Middle:
+                //         spawnType = WOOD;
+                //         break;
+                //     default:
+                //         spawnType = SAND;
+                // }
             }
             if (event.type == sf::Event::MouseButtonReleased)
                 spawning = false;
@@ -99,6 +111,7 @@ int main() {
         world.check();
         window.clear();
         drawGrid(&world, WORLD_SIZE, &window);
+        btnSand.drawTo(window);
         window.display();
     }
 
