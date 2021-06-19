@@ -1,15 +1,22 @@
 #include "Button.hpp"
 
 Button::Button() {
-
+    text.setString("None");
+    text.setFillColor(sf::Color::White);
+    text.setCharacterSize(10);
+    button.setSize({100, 50});
+    button.setFillColor(sf::Color::Black);
+    pType = EMPTY;
 }
 
-Button::Button(std::string t, sf::Vector2f size, int charSize, sf::Color bgColor, sf::Color textColor) {
+Button::Button(std::string t, sf::Vector2f size, int charSize,
+        sf::Color bgColor, sf::Color textColor, ParticleType pt) {
     text.setString(t);
     text.setFillColor(textColor);
     text.setCharacterSize(charSize);
     button.setSize(size);
     button.setFillColor(bgColor);
+    pType = pt;
 }
 
 void Button::setFont(sf::Font &font) {
@@ -31,6 +38,14 @@ void Button::setPosition(sf::Vector2f pos) {
     text.setPosition({xPos, yPos - 3});
 }
 
+void Button::setType(ParticleType pt) {
+    pType = pt;
+}
+
+ParticleType Button::getType() {
+    return pType;
+}
+
 void Button::drawTo(sf::RenderWindow &window) {
     window.draw(button);
     window.draw(text);
@@ -49,8 +64,4 @@ bool Button::isMouseOver(sf::RenderWindow &window) {
     } else {
         return false;
     }
-}
-
-std::string Button::getText() {
-    return text.getString();
 }
