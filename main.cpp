@@ -1,14 +1,9 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 #include <iostream>
+#include "include/Constants.hpp"
 #include "include/Grid.hpp"
 #include "include/Button.hpp"
-
-const uint32_t WIN_WIDTH = 800;
-const uint32_t WIN_HEIGHT = 600;
-const uint32_t WORLD_SIZE = 100;
-const uint32_t PARTICLE_WIDTH = WIN_WIDTH / WORLD_SIZE;
-const uint32_t PARTICLE_HEIGHT = WIN_HEIGHT / WORLD_SIZE;
 
 void spawnParticles(Grid* world, ParticleType t, int x, int y) {
     int col = x / PARTICLE_WIDTH;
@@ -56,6 +51,35 @@ void drawGrid(Grid* world, int size, sf::RenderWindow* window) {
     }
 }
 
+void createButtons(Button* btns, sf::Font &font) {
+    btns[0] = Button("Sand", {50, 25}, 15, sf::Color::White, sf::Color::Black, SAND);
+    btns[0].setFont(font);
+    btns[0].setPosition({740, 10});
+    btns[1] = Button("Water", {50, 25}, 15, sf::Color::White, sf::Color::Black, WATER);
+    btns[1].setFont(font);
+    btns[1].setPosition({740, 40});
+    btns[2] = Button("Wood", {50, 25}, 15, sf::Color::White, sf::Color::Black, WOOD);
+    btns[2].setFont(font);
+    btns[2].setPosition({740, 70});
+    btns[3] = Button("Fire", {50, 25}, 15, sf::Color::White, sf::Color::Black, FIRE);
+    btns[3].setFont(font);
+    btns[3].setPosition({740, 100});
+}
+
+void drawButtons(Button* btns, sf::RenderWindow &window) {
+    for (int i = 0; i < 4; i++) {
+        btns[i].drawTo(window);
+    }
+}
+
+int mouseOverButton(Button* btns, sf::RenderWindow &window) {
+    for (int i = 0; i < 4; i++) {
+        if (btns[i].isMouseOver(window))
+            return i;
+    }
+    return -1;
+}
+
 int main() {
     sf::RenderWindow window(sf::VideoMode(WIN_WIDTH, WIN_HEIGHT), "Sand Game");
     window.setFramerateLimit(60);
@@ -67,9 +91,8 @@ int main() {
 
     bool spawning = false;
     ParticleType spawnType = EMPTY;
-    Button btnSand("Sand", {50, 25}, 15, sf::Color::White, sf::Color::Black);
-    btnSand.setFont(droidSansMono);
-    btnSand.setPosition({740, 10});
+    Button btns[4];
+    createButtons(btns, droidSansMono);
 
     while (window.isOpen()) {
         float dt = deltaClock.restart().asSeconds();
@@ -80,8 +103,9 @@ int main() {
             if (event.type == sf::Event::Closed)
                 window.close();
             if (event.type == sf::Event::MouseButtonPressed) {
-                if (btnSand.isMouseOver(window)) {
-                    spawnType = SAND;
+                int btnNum = mouseOverButton(btns, window);
+                if (btnNum >= 0) {
+                    spawnType = btns[btnNum].getType();
                 } else {
                     spawning = true;
                 }
@@ -111,7 +135,7 @@ int main() {
         world.check();
         window.clear();
         drawGrid(&world, WORLD_SIZE, &window);
-        btnSand.drawTo(window);
+        drawButtons(btns, window);
         window.display();
     }
 
