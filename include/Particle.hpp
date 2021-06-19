@@ -1,6 +1,5 @@
 #include <SFML/Graphics.hpp>
-enum ParticleType {EMPTY, SAND, WATER, WOOD, FIRE};
-enum ParticleColor {YELLOW, BLUE, BLACK, BROWN, RED};
+#include "Constants.hpp"
 
 class Particle {
     public:

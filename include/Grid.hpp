@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 #include "Particle.hpp"
+#include "Constants.hpp"
 
 class Grid {
     public:
