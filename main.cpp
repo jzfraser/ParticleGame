@@ -109,19 +109,6 @@ int main() {
                 } else {
                     spawning = true;
                 }
-                // switch (event.mouseButton.button) {
-                //     case sf::Mouse::Button::Left:
-                //         spawnType = FIRE;
-                //         break;
-                //     case sf::Mouse::Button::Right:
-                //         spawnType = SAND;
-                //         break;
-                //     case sf::Mouse::Button::Middle:
-                //         spawnType = WOOD;
-                //         break;
-                //     default:
-                //         spawnType = SAND;
-                // }
             }
             if (event.type == sf::Event::MouseButtonReleased)
                 spawning = false;
