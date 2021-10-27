@@ -14,7 +14,7 @@ Here are the steps I go through to build/run this easily
 1. Clone the repo locally
 2. cd into the ParticleGame directory
 3. run `mkdir build` and cd into the build directory
-4. run `cmake ..` which will create adn put all build files into the build directory based on the CMakeLists.txt in the root directory
+4. run `cmake ..` which will create and put all build files into the build directory based on the CMakeLists.txt in the root directory
 5. run `make` inside the build directory to create the executable
 6. run `./ParticleGame` in the build directory to start up the game!
 
