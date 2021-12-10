@@ -7,6 +7,10 @@ It is a work in progress, but already shows off a few different particle types t
 basic rules they follow. Not meant to be a full functioning simulator, but rather a way for me
 to learn more C++ and SFML.
 
+### Prerequisites
+
+- C++, C/C++ compiler, cmake, SFML
+
 ### How to build/run
 
 Here are the steps I go through to build/run this easily
