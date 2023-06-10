@@ -28,24 +28,24 @@ void Grid::check() {
     for (int row = size - 1; row >= 0; row--) {
         for (int col = 0; col < size; col++) {
             switch (grid[row][col].pType) {
-                case SAND:
-                    updateSand(row, col);
-                    break;
-                case WATER:
-                    updateWater(row, col);
-                    break;
-                case WOOD:
-                    updateWood(row, col);
-                    break;
-                case FIRE:
-                    updateFire(row, col);
-                    break;
-                case EMPTY:
-                    // std::cout << row << " " << col << " Empty\n";
-                    break;
-                default:
-                    std::cout << "check hit default\n";
-                    break;
+            case SAND:
+                updateSand(row, col);
+                break;
+            case WATER:
+                updateWater(row, col);
+                break;
+            case WOOD:
+                updateWood(row, col);
+                break;
+            case FIRE:
+                updateFire(row, col);
+                break;
+            case EMPTY:
+                // std::cout << row << " " << col << " Empty\n";
+                break;
+            default:
+                std::cout << "check hit default\n";
+                break;
             }
         }
     }
@@ -83,9 +83,11 @@ void Grid::updateSand(uint32_t row, uint32_t col) {
     if (row < size - 1) {
         if (slotIsEmpty(row + 1, col) || slotContains(WATER, row + 1, col)) {
             moveFromTo(row, col, row + 1, col);
-        } else if (col > 0 && (slotIsEmpty(row + 1, col - 1) || slotContains(WATER, row + 1, col - 1))) {
+        } else if (col > 0 &&
+        (slotIsEmpty(row + 1, col - 1) || slotContains(WATER, row + 1, col - 1))) {
             moveFromTo(row, col, row + 1, col - 1);
-        } else if (col < size - 1 && (slotIsEmpty(row + 1, col + 1) || slotContains(WATER, row + 1, col + 1))) {
+        } else if (col < size - 1 &&
+        (slotIsEmpty(row + 1, col + 1) || slotContains(WATER, row + 1, col + 1))) {
             moveFromTo(row, col, row + 1, col + 1);
         }
     }
@@ -128,7 +130,7 @@ void Grid::updateFire(uint32_t row, uint32_t col) {
     if (p->lifeTime == 0) {
         p->setType(EMPTY);
         return;
-    } 
+    }
     if (p->hasBeenUpdated) {
         p->hasBeenUpdated = false;
         return;
@@ -142,7 +144,7 @@ void Grid::updateFire(uint32_t row, uint32_t col) {
         }
         if (col < size - 1 && slotContains(WOOD, row + 1, col + 1)) {
             copyFromTo(row, col, row + 1, col + 1);
-        } 
+        }
     }
     if (row < size - 1) {
         if (col > 0 && slotContains(WOOD, row - 1, col - 1)) {
@@ -154,7 +156,7 @@ void Grid::updateFire(uint32_t row, uint32_t col) {
     }
     if (col > 0 && slotContains(WOOD, row, col - 1)) {
         copyFromTo(row, col, row, col - 1);
-    } 
+    }
     if (col < size - 1 && slotContains(WOOD, row, col + 1)) {
         copyFromTo(row, col, row, col + 1);
     }

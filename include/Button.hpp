@@ -1,22 +1,21 @@
-#include <iostream>
-#include <SFML/Graphics.hpp>
 #include "Constants.hpp"
+#include <SFML/Graphics.hpp>
+#include <iostream>
 
 class Button {
-public:
+    public:
     Button();
-    Button(std::string t, sf::Vector2f size, int charSize,
-        sf::Color bgColor, sf::Color textColor, ParticleType pt);
-    void setFont(sf::Font &font);
+    Button(std::string t, sf::Vector2f size, int charSize, sf::Color bgColor, sf::Color textColor, ParticleType pt);
+    void setFont(sf::Font& font);
     void setBgColor(sf::Color color);
     void setTextColor(sf::Color color);
     void setPosition(sf::Vector2f pos);
     void setType(ParticleType pT);
     ParticleType getType();
-    void drawTo(sf::RenderWindow &window);
-    bool isMouseOver(sf::RenderWindow &window);
+    void drawTo(sf::RenderWindow& window);
+    bool isMouseOver(sf::RenderWindow& window);
 
-private:
+    private:
     sf::RectangleShape button;
     sf::Text text;
     ParticleType pType;
