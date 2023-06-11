@@ -17,7 +17,7 @@ Here are the steps I go through to build/run this easily
 
 1. Clone the repo locally
 2. cd into the ParticleGame directory
-3. if on macos, delete CMakeLists.txt and rename CMakeLists_macos.txt to remove the "\_macos"
+3. copy and rename CMakeLists_default.txt or CMakeLists_macos.txt to CMakeLists.txt depending on platform
 4. run `mkdir build` and cd into the build directory
 5. run `cmake ..` which will create and put all build files into the build directory based on the CMakeLists.txt in the root directory
 6. run `make` inside the build directory to create the executable
