@@ -54,7 +54,7 @@ int mouseOverButton(Button* btns, sf::RenderWindow& window) {
 
 int main() {
     sf::RenderWindow window(sf::VideoMode(WIN_WIDTH, WIN_HEIGHT), "Particle Game");
-    window.setFramerateLimit(144);
+    window.setFramerateLimit(60);
     sf::Clock deltaClock;
     sf::Font droidSansMono;
     droidSansMono.loadFromFile("../include/DroidSansMono.ttf");
@@ -67,7 +67,7 @@ int main() {
     createButtons(btns, droidSansMono);
 
     while (window.isOpen()) {
-        // float dt = deltaClock.restart().asSeconds();
+        float dt = deltaClock.restart().asSeconds();
         // int fps  = 1 / dt;
         // std::cout << fps << "\n";
         sf::Event event;
@@ -91,7 +91,8 @@ int main() {
             spawnParticles(&world, spawnType, x, y);
         }
 
-        world.update();
+        world.readyParticles();
+        world.update(dt);
         window.clear();
         window.draw(world);
         drawButtons(btns, window);

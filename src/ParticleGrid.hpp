@@ -8,14 +8,16 @@ public:
 
     ParticleGrid(uint16_t _width, uint16_t _height);
     ~ParticleGrid();
-    void update();
+    void update(float _dt);
     void createP(ParticleType t, uint16_t row, uint16_t col);
+    void readyParticles();
 
 private:
     const uint16_t width;
     const uint16_t height;
     sf::VertexArray particles;
     uint32_t numParticles;
+    float dt;
 
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 

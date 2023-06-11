@@ -3,7 +3,11 @@
 #include <iostream>
 
 ParticleGrid::ParticleGrid(uint16_t _width, uint16_t _height)
-: width(_width), height(_height), particles(sf::Quads, width * height * 4), numParticles(0) {
+: width(_width),
+  height(_height),
+  particles(sf::Quads, width * height * 4),
+  numParticles(0),
+  dt(0) {
     grid = new Particle*[height];
     for (uint16_t row = 0; row < height; row++) {
         grid[row] = new Particle[width];
@@ -18,9 +22,12 @@ ParticleGrid::~ParticleGrid() {
     delete[] grid;
 }
 
-void ParticleGrid::update() {
+void ParticleGrid::update(float _dt) {
+    dt = _dt;
     for (int16_t row = 0; row < height; row++) {
         for (uint16_t col = 0; col < width; col++) {
+            if (grid[row][col].hasBeenUpdated)
+                continue;
             switch (grid[row][col].pType) {
             case SAND:
                 updateSand(row, col);
@@ -50,6 +57,13 @@ void ParticleGrid::createP(ParticleType t, uint16_t row, uint16_t col) {
     }
 }
 
+void ParticleGrid::readyParticles() {
+    for (uint16_t r = 0; r < height; r++) {
+        for (uint16_t c = 0; c < width; c++) {
+            grid[r][c].hasBeenUpdated = false;
+        }
+    }
+}
 
 void ParticleGrid::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     states.transform *= getTransform();
@@ -77,14 +91,10 @@ void ParticleGrid::moveFromTo(uint16_t fRow, uint16_t fCol, uint16_t tRow, uint1
     ParticleType temp = grid[tRow][tCol].pType;
     grid[tRow][tCol].setType(grid[fRow][fCol].pType);
     grid[fRow][fCol].setType(temp);
-    grid[fRow][fCol].hasBeenUpdated = true;
-    grid[tRow][tCol].hasBeenUpdated = true;
 }
 
 void ParticleGrid::copyFromTo(uint16_t fRow, uint16_t fCol, uint16_t tRow, uint16_t tCol) {
     grid[tRow][tCol].setType(grid[fRow][fCol].pType);
-    grid[fRow][fCol].hasBeenUpdated = true;
-    grid[tRow][tCol].hasBeenUpdated = true;
 }
 
 void ParticleGrid::updateVertices() {
@@ -133,47 +143,51 @@ void ParticleGrid::updateVertices() {
 }
 
 void ParticleGrid::updateSand(uint16_t row, uint16_t col) {
-    if (grid[row][col].hasBeenUpdated) {
-        grid[row][col].hasBeenUpdated = false;
-        return;
-    }
     if (row < height - 1) {
         if (isEmpty(row + 1, col) || containsType(WATER, row + 1, col)) {
             moveFromTo(row, col, row + 1, col);
+            grid[row + 1][col].hasBeenUpdated = true;
         } else if (col > 0 &&
             (isEmpty(row + 1, col - 1) || containsType(WATER, row + 1, col - 1))) {
             moveFromTo(row, col, row + 1, col - 1);
+            grid[row + 1][col - 1].hasBeenUpdated = true;
         } else if (col < width - 1 &&
             (isEmpty(row + 1, col + 1) || containsType(WATER, row + 1, col + 1))) {
             moveFromTo(row, col, row + 1, col + 1);
+            grid[row + 1][col + 1].hasBeenUpdated = true;
         }
     }
+    grid[row][col].hasBeenUpdated = true;
 }
 
 void ParticleGrid::updateWater(uint16_t row, uint16_t col) {
-    if (grid[row][col].hasBeenUpdated) {
-        grid[row][col].hasBeenUpdated = false;
-        return;
-    }
     if (row < height - 1) {
         if (isEmpty(row + 1, col)) {
             moveFromTo(row, col, row + 1, col);
+            grid[row + 1][col].hasBeenUpdated = true;
         } else if (col > 0 && isEmpty(row + 1, col - 1)) {
             moveFromTo(row, col, row + 1, col - 1);
+            grid[row + 1][col - 1].hasBeenUpdated = true;
         } else if (col < width - 1 && isEmpty(row + 1, col + 1)) {
             moveFromTo(row, col, row + 1, col + 1);
+            grid[row + 1][col + 1].hasBeenUpdated = true;
         } else if (col > 0 && isEmpty(row, col - 1)) {
             moveFromTo(row, col, row, col - 1);
+            grid[row][col - 1].hasBeenUpdated = true;
         } else if (col < width - 1 && isEmpty(row, col + 1)) {
             moveFromTo(row, col, row, col + 1);
+            grid[row][col + 1].hasBeenUpdated = true;
         }
     } else {
         if (col > 0 && isEmpty(row, col - 1)) {
             moveFromTo(row, col, row, col - 1);
+            grid[row][col - 1].hasBeenUpdated = true;
         } else if (col < width - 1 && isEmpty(row, col + 1)) {
             moveFromTo(row, col, row, col + 1);
+            grid[row][col + 1].hasBeenUpdated = true;
         }
     }
+    grid[row][col].hasBeenUpdated = true;
 }
 
 void ParticleGrid::updateWood(uint16_t row, uint16_t col) {
@@ -184,10 +198,6 @@ void ParticleGrid::updateFire(uint16_t row, uint16_t col) {
     Particle* p = &grid[row][col];
     if (p->lifeTime == 0) {
         p->setType(EMPTY);
-        return;
-    }
-    if (p->hasBeenUpdated) {
-        p->hasBeenUpdated = false;
         return;
     }
     if (row > 0 && row < height - 1) {
@@ -221,4 +231,5 @@ void ParticleGrid::updateFire(uint16_t row, uint16_t col) {
     if (p->lifeTime > 0) {
         p->lifeTime--;
     }
+    grid[row][col].hasBeenUpdated = true;
 }
