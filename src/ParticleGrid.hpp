@@ -15,7 +15,7 @@ private:
     const uint16_t width;
     const uint16_t height;
     sf::VertexArray particles;
-    uint16_t numParticles;
+    uint32_t numParticles;
 
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
@@ -24,8 +24,9 @@ private:
     bool containsType(ParticleType t, uint16_t row, uint16_t col);
     void moveFromTo(uint16_t fRow, uint16_t fCol, uint16_t tRow, uint16_t tCol);
     void copyFromTo(uint16_t fRow, uint16_t fCol, uint16_t tRow, uint16_t tCol);
-    void updateSand(uint16_t row, uint16_t col, uint16_t pIndex);
-    void updateWater(uint16_t row, uint16_t col, uint16_t pIndex);
-    void updateWood(uint16_t row, uint16_t col, uint16_t pIndex);
-    void updateFire(uint16_t row, uint16_t col, uint16_t pIndex);
+    void updateVertices();
+    void updateSand(uint16_t row, uint16_t col);
+    void updateWater(uint16_t row, uint16_t col);
+    void updateWood(uint16_t row, uint16_t col);
+    void updateFire(uint16_t row, uint16_t col);
 };

@@ -1,4 +1,6 @@
 #include "ParticleGrid.hpp"
+#include "Constants.hpp"
+#include <iostream>
 
 ParticleGrid::ParticleGrid(uint16_t _width, uint16_t _height)
 : width(_width), height(_height), particles(sf::Quads, width * height * 4), numParticles(0) {
@@ -17,27 +19,20 @@ ParticleGrid::~ParticleGrid() {
 }
 
 void ParticleGrid::update() {
-    particles.clear();
-    particles.resize(numParticles * 4);
-    uint16_t pIndex = 0;
-    for (int16_t row = height - 1; row >= 0; row--) {
+    for (int16_t row = 0; row < height; row++) {
         for (uint16_t col = 0; col < width; col++) {
             switch (grid[row][col].pType) {
             case SAND:
-                updateSand(row, col, pIndex);
-                pIndex++;
+                updateSand(row, col);
                 break;
             case WATER:
-                updateWater(row, col, pIndex);
-                pIndex++;
+                updateWater(row, col);
                 break;
             case WOOD:
-                updateWood(row, col, pIndex);
-                pIndex++;
+                updateWood(row, col);
                 break;
             case FIRE:
-                updateFire(row, col, pIndex);
-                pIndex++;
+                updateFire(row, col);
                 break;
             case EMPTY:
             default:
@@ -45,6 +40,7 @@ void ParticleGrid::update() {
             }
         }
     }
+    updateVertices();
 }
 
 void ParticleGrid::createP(ParticleType t, uint16_t row, uint16_t col) {
@@ -91,11 +87,52 @@ void ParticleGrid::copyFromTo(uint16_t fRow, uint16_t fCol, uint16_t tRow, uint1
     grid[tRow][tCol].hasBeenUpdated = true;
 }
 
-void ParticleGrid::updateSand(uint16_t row, uint16_t col, uint16_t pIndex) {
-    sf::Vertex* p = &particles[pIndex * 4];
-    for (uint8_t i = 0; i < 4; i++) {
-        p[i].color = sf::Color(210, 180, 140);
+void ParticleGrid::updateVertices() {
+    for (uint16_t r = 0; r < height; r++) {
+        for (uint16_t c = 0; c < width; c++) {
+            sf::Vertex* p = &particles[(r + c * height) * 4];
+            p[0].position = sf::Vector2f(c * PARTICLE_WIDTH, r * PARTICLE_HEIGHT);
+            p[1].position = sf::Vector2f(c * PARTICLE_WIDTH, (r + 1) * PARTICLE_HEIGHT);
+            p[2].position = sf::Vector2f((c + 1) * PARTICLE_WIDTH, (r + 1) * PARTICLE_HEIGHT);
+            p[3].position = sf::Vector2f((c + 1) * PARTICLE_WIDTH, r * PARTICLE_HEIGHT);
+
+            switch (grid[r][c].pType) {
+            case SAND:
+                p[0].color = sf::Color(210, 180, 140);
+                p[1].color = sf::Color(210, 180, 140);
+                p[2].color = sf::Color(210, 180, 140);
+                p[3].color = sf::Color(210, 180, 140);
+                break;
+            case WATER:
+                p[0].color = sf::Color::Blue;
+                p[1].color = sf::Color::Blue;
+                p[2].color = sf::Color::Blue;
+                p[3].color = sf::Color::Blue;
+                break;
+            case WOOD:
+                p[0].color = sf::Color(56, 42, 32);
+                p[1].color = sf::Color(56, 42, 32);
+                p[2].color = sf::Color(56, 42, 32);
+                p[3].color = sf::Color(56, 42, 32);
+                break;
+            case FIRE:
+                p[0].color = sf::Color::Red;
+                p[1].color = sf::Color::Red;
+                p[2].color = sf::Color::Red;
+                p[3].color = sf::Color::Red;
+                break;
+            case EMPTY:
+            default:
+                p[0].color = sf::Color::Black;
+                p[1].color = sf::Color::Black;
+                p[2].color = sf::Color::Black;
+                p[3].color = sf::Color::Black;
+            }
+        }
     }
+}
+
+void ParticleGrid::updateSand(uint16_t row, uint16_t col) {
     if (grid[row][col].hasBeenUpdated) {
         grid[row][col].hasBeenUpdated = false;
         return;
@@ -103,45 +140,85 @@ void ParticleGrid::updateSand(uint16_t row, uint16_t col, uint16_t pIndex) {
     if (row < height - 1) {
         if (isEmpty(row + 1, col) || containsType(WATER, row + 1, col)) {
             moveFromTo(row, col, row + 1, col);
-            p[0].position = sf::Vector2f(col * PARTICLE_HEIGHT, (row + 1) * PARTICLE_HEIGHT);
-            p[1].position = sf::Vector2f(col * PARTICLE_HEIGHT, (row + 1 + 1) * PARTICLE_HEIGHT);
-            p[2].position = sf::Vector2f(
-                (col + 1) * PARTICLE_HEIGHT, (row + 1 + 1) * PARTICLE_HEIGHT);
-            p[3].position = sf::Vector2f((col + 1) * PARTICLE_HEIGHT, (row + 1) * PARTICLE_HEIGHT);
         } else if (col > 0 &&
             (isEmpty(row + 1, col - 1) || containsType(WATER, row + 1, col - 1))) {
             moveFromTo(row, col, row + 1, col - 1);
-            p[0].position = sf::Vector2f((col - 1) * PARTICLE_HEIGHT, (row + 1) * PARTICLE_HEIGHT);
-            p[1].position = sf::Vector2f(
-                (col - 1) * PARTICLE_HEIGHT, (row + 1 + 1) * PARTICLE_HEIGHT);
-            p[2].position = sf::Vector2f((col - 1 + 1) * PARTICLE_HEIGHT,
-                (row + 1 + 1) * PARTICLE_HEIGHT);
-            p[3].position = sf::Vector2f(
-                (col - 1 + 1) * PARTICLE_HEIGHT, (row + 1) * PARTICLE_HEIGHT);
         } else if (col < width - 1 &&
             (isEmpty(row + 1, col + 1) || containsType(WATER, row + 1, col + 1))) {
             moveFromTo(row, col, row + 1, col + 1);
-            p[0].position = sf::Vector2f((col + 1) * PARTICLE_HEIGHT, (row + 1) * PARTICLE_HEIGHT);
-            p[1].position = sf::Vector2f(
-                (col + 1) * PARTICLE_HEIGHT, (row + 1 + 1) * PARTICLE_HEIGHT);
-            p[2].position = sf::Vector2f((col + 1 + 1) * PARTICLE_HEIGHT,
-                (row + 1 + 1) * PARTICLE_HEIGHT);
-            p[3].position = sf::Vector2f(
-                (col + 1 + 1) * PARTICLE_HEIGHT, (row + 1) * PARTICLE_HEIGHT);
-        } else {
-            p[0].position = sf::Vector2f(col * PARTICLE_HEIGHT, row * PARTICLE_HEIGHT);
-            p[1].position = sf::Vector2f(col * PARTICLE_HEIGHT, (row + 1) * PARTICLE_HEIGHT);
-            p[2].position = sf::Vector2f((col + 1) * PARTICLE_HEIGHT, (row + 1) * PARTICLE_HEIGHT);
-            p[3].position = sf::Vector2f((col + 1) * PARTICLE_HEIGHT, row * PARTICLE_HEIGHT);
         }
     }
 }
 
-void ParticleGrid::updateWater(uint16_t row, uint16_t col, uint16_t pIndex) {
+void ParticleGrid::updateWater(uint16_t row, uint16_t col) {
+    if (grid[row][col].hasBeenUpdated) {
+        grid[row][col].hasBeenUpdated = false;
+        return;
+    }
+    if (row < height - 1) {
+        if (isEmpty(row + 1, col)) {
+            moveFromTo(row, col, row + 1, col);
+        } else if (col > 0 && isEmpty(row + 1, col - 1)) {
+            moveFromTo(row, col, row + 1, col - 1);
+        } else if (col < width - 1 && isEmpty(row + 1, col + 1)) {
+            moveFromTo(row, col, row + 1, col + 1);
+        } else if (col > 0 && isEmpty(row, col - 1)) {
+            moveFromTo(row, col, row, col - 1);
+        } else if (col < width - 1 && isEmpty(row, col + 1)) {
+            moveFromTo(row, col, row, col + 1);
+        }
+    } else {
+        if (col > 0 && isEmpty(row, col - 1)) {
+            moveFromTo(row, col, row, col - 1);
+        } else if (col < width - 1 && isEmpty(row, col + 1)) {
+            moveFromTo(row, col, row, col + 1);
+        }
+    }
 }
 
-void ParticleGrid::updateWood(uint16_t row, uint16_t col, uint16_t pIndex) {
+void ParticleGrid::updateWood(uint16_t row, uint16_t col) {
+    return;
 }
 
-void ParticleGrid::updateFire(uint16_t row, uint16_t col, uint16_t pIndex) {
+void ParticleGrid::updateFire(uint16_t row, uint16_t col) {
+    Particle* p = &grid[row][col];
+    if (p->lifeTime == 0) {
+        p->setType(EMPTY);
+        return;
+    }
+    if (p->hasBeenUpdated) {
+        p->hasBeenUpdated = false;
+        return;
+    }
+    if (row > 0 && row < height - 1) {
+        if (containsType(WOOD, row + 1, col)) {
+            copyFromTo(row, col, row + 1, col);
+        }
+        if (col > 0 && containsType(WOOD, row + 1, col - 1)) {
+            copyFromTo(row, col, row + 1, col - 1);
+        }
+        if (col < width - 1 && containsType(WOOD, row + 1, col + 1)) {
+            copyFromTo(row, col, row + 1, col + 1);
+        }
+    }
+    if (row < width - 1) {
+        if (col > 0 && containsType(WOOD, row - 1, col - 1)) {
+            copyFromTo(row, col, row - 1, col - 1);
+        }
+        if (col < width - 1 && containsType(WOOD, row - 1, col + 1)) {
+            copyFromTo(row, col, row - 1, col + 1);
+        }
+    }
+    if (col > 0 && containsType(WOOD, row, col - 1)) {
+        copyFromTo(row, col, row, col - 1);
+    }
+    if (col < width - 1 && containsType(WOOD, row, col + 1)) {
+        copyFromTo(row, col, row, col + 1);
+    }
+    if (!p->hasBeenUpdated && p->lifeTime == 0) {
+        grid[row][col].setType(EMPTY);
+    }
+    if (p->lifeTime > 0) {
+        p->lifeTime--;
+    }
 }

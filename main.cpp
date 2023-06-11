@@ -3,26 +3,23 @@
 #include "src/ParticleGrid.hpp"
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
+#include <algorithm>
+#include <cmath>
 #include <iostream>
 
 void spawnParticles(ParticleGrid* world, ParticleType t, int x, int y) {
-    int col = x / PARTICLE_WIDTH;
-    int row = y / PARTICLE_HEIGHT;
-    // std::cout << row << " " << col << "\n";
-    if (row < WORLD_HEIGHT && col < WORLD_WIDTH) {
-        world->createP(t, row, col);
-        if (row < WORLD_HEIGHT - 1) {
-            world->createP(t, row + 1, col);
-        }
-        if (col > 0) {
-            world->createP(t, row, col - 1);
-        }
-        if (col < WORLD_WIDTH - 1) {
-            world->createP(t, row, col + 1);
-        }
-        if (row > 0) {
-            world->createP(t, row - 1, col);
-        }
+    int col      = x / PARTICLE_WIDTH;
+    int row      = y / PARTICLE_HEIGHT;
+    float radius = 50.0;
+    for (uint16_t i = 0; i < 100; i++) {
+        float ran   = rand() % 100 / 100.f;
+        float r     = radius * sqrtf(ran);
+        float theta = rand() % 100 / 100.f * 2.f * M_PI;
+        float rx    = cos(theta) * r;
+        float ry    = sin(theta) * r;
+        int32_t mpx = std::clamp(col + rx, 0.f, WORLD_WIDTH - 1.f);
+        int32_t mpy = std::clamp(row + ry, 0.f, WORLD_HEIGHT - 1.f);
+        world->createP(t, mpy, mpx);
     }
 }
 
