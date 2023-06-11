@@ -1,73 +1,44 @@
-#include "include/Button.hpp"
-#include "include/Constants.hpp"
-#include "include/Grid.hpp"
+#include "src/Button.hpp"
+#include "src/Constants.hpp"
+#include "src/ParticleGrid.hpp"
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 #include <iostream>
 
-void spawnParticles(Grid* world, ParticleType t, int x, int y) {
+void spawnParticles(ParticleGrid* world, ParticleType t, int x, int y) {
     int col = x / PARTICLE_WIDTH;
     int row = y / PARTICLE_HEIGHT;
     // std::cout << row << " " << col << "\n";
-    if (row < world->size && col < world->size) {
-        if (world->slotIsEmpty(row, col)) {
-            world->grid[row][col].setType(t);
+    if (row < WORLD_HEIGHT && col < WORLD_WIDTH) {
+        world->createP(t, row, col);
+        if (row < WORLD_HEIGHT - 1) {
+            world->createP(t, row + 1, col);
         }
-        if (row < world->size - 1 && world->slotIsEmpty(row + 1, col)) {
-            world->grid[row + 1][col].setType(t);
+        if (col > 0) {
+            world->createP(t, row, col - 1);
         }
-        if (col > 0 && world->slotIsEmpty(row, col - 1)) {
-            world->grid[row][col - 1].setType(t);
+        if (col < WORLD_WIDTH - 1) {
+            world->createP(t, row, col + 1);
         }
-        if (col < world->size - 1 && world->slotIsEmpty(row, col + 1)) {
-            world->grid[row][col + 1].setType(t);
-        }
-        if (row > 0 && world->slotIsEmpty(row - 1, col)) {
-            world->grid[row - 1][col].setType(t);
-        }
-    }
-}
-
-void drawGrid(Grid* world, int size, sf::RenderWindow* window) {
-    for (int row = 0; row < size; row++) {
-        for (int col = 0; col < size; col++) {
-            sf::RectangleShape particle(sf::Vector2f(PARTICLE_WIDTH, PARTICLE_HEIGHT));
-            particle.setPosition(col * PARTICLE_WIDTH, row * PARTICLE_HEIGHT);
-            switch (world->grid[row][col].color) {
-            case YELLOW:
-                particle.setFillColor(sf::Color::Yellow);
-                break;
-            case BLUE:
-                particle.setFillColor(sf::Color::Blue);
-                break;
-            case BROWN:
-                particle.setFillColor(sf::Color(102, 51, 0));
-                break;
-            case RED:
-                particle.setFillColor(sf::Color::Red);
-                break;
-            case BLACK:
-            default:
-                particle.setFillColor(sf::Color::Black);
-            }
-            window->draw(particle);
+        if (row > 0) {
+            world->createP(t, row - 1, col);
         }
     }
 }
 
 void createButtons(Button* btns, sf::Font& font) {
-    btns[0] = Button("Sand", { 50, 25 }, 15, sf::Color::White, sf::Color::Black, SAND);
+    btns[0] = Button("Sand", { 80, 55 }, 25, sf::Color::White, sf::Color::Black, SAND);
     btns[0].setFont(font);
-    btns[0].setPosition({ 740, 10 });
-    btns[1] = Button("Water", { 50, 25 }, 15, sf::Color::White, sf::Color::Black, WATER);
+    btns[0].setPosition({ WIN_WIDTH - 90, 10 });
+    btns[1] = Button("Water", { 80, 55 }, 25, sf::Color::White, sf::Color::Black, WATER);
     btns[1].setFont(font);
-    btns[1].setPosition({ 740, 40 });
-    btns[2] = Button("Wood", { 50, 25 }, 15, sf::Color::White, sf::Color::Black, WOOD);
+    btns[1].setPosition({ WIN_WIDTH - 90, 70 });
+    btns[2] = Button("Wood", { 80, 55 }, 25, sf::Color::White, sf::Color::Black, WOOD);
     btns[2].setFont(font);
-    btns[2].setPosition({ 740, 70 });
-    btns[3] = Button("Fire", { 50, 25 }, 15, sf::Color::White, sf::Color::Black, FIRE);
+    btns[2].setPosition({ WIN_WIDTH - 90, 130 });
+    btns[3] = Button("Fire", { 80, 55 }, 25, sf::Color::White, sf::Color::Black, FIRE);
     btns[3].setFont(font);
-    btns[3].setPosition({ 740, 100 });
+    btns[3].setPosition({ WIN_WIDTH - 90, 190 });
 }
 
 void drawButtons(Button* btns, sf::RenderWindow& window) {
@@ -85,13 +56,13 @@ int mouseOverButton(Button* btns, sf::RenderWindow& window) {
 }
 
 int main() {
-    sf::RenderWindow window(sf::VideoMode(WIN_WIDTH, WIN_HEIGHT), "Sand Game");
-    window.setFramerateLimit(60);
+    sf::RenderWindow window(sf::VideoMode(WIN_WIDTH, WIN_HEIGHT), "Particle Game");
+    window.setFramerateLimit(144);
     sf::Clock deltaClock;
     sf::Font droidSansMono;
     droidSansMono.loadFromFile("../include/DroidSansMono.ttf");
 
-    Grid world = Grid(WORLD_SIZE);
+    ParticleGrid world = ParticleGrid(WORLD_WIDTH, WORLD_HEIGHT);
 
     bool spawning          = false;
     ParticleType spawnType = EMPTY;
@@ -99,8 +70,8 @@ int main() {
     createButtons(btns, droidSansMono);
 
     while (window.isOpen()) {
-        float dt = deltaClock.restart().asSeconds();
-        int fps  = 1 / dt;
+        // float dt = deltaClock.restart().asSeconds();
+        // int fps  = 1 / dt;
         // std::cout << fps << "\n";
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -123,9 +94,9 @@ int main() {
             spawnParticles(&world, spawnType, x, y);
         }
 
-        world.check();
+        world.update();
         window.clear();
-        drawGrid(&world, WORLD_SIZE, &window);
+        window.draw(world);
         drawButtons(btns, window);
         window.display();
     }
