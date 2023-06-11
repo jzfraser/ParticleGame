@@ -5,10 +5,11 @@
 
 class Grid {
     public:
-    const uint32_t size;
+    const uint32_t columns;
+    const uint32_t rows;
     Particle** grid;
 
-    Grid(uint32_t _size);
+    Grid(uint32_t _width, uint32_t _height);
     ~Grid();
     void fill(ParticleType t);
     void check();

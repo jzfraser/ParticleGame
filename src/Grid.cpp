@@ -1,32 +1,32 @@
 #include "Grid.hpp"
 #include <iostream>
 
-Grid::Grid(uint32_t _size) : size(_size) {
-    grid = new Particle*[size];
-    for (int row = 0; row < size; row++) {
-        grid[row] = new Particle[size];
+Grid::Grid(uint32_t _width, uint32_t _height) : columns(_width), rows(_height) {
+    grid = new Particle*[rows];
+    for (int row = 0; row < rows; row++) {
+        grid[row] = new Particle[columns];
     }
     fill(EMPTY);
 }
 
 Grid::~Grid() {
-    for (int row = 0; row < size; row++) {
+    for (int row = 0; row < rows; row++) {
         delete[] grid[row];
     }
     delete[] grid;
 }
 
 void Grid::fill(ParticleType t) {
-    for (int row = 0; row < size; row++) {
-        for (int col = 0; col < size; col++) {
+    for (int row = 0; row < rows; row++) {
+        for (int col = 0; col < columns; col++) {
             grid[row][col].setType(t);
         }
     }
 }
 
 void Grid::check() {
-    for (int row = size - 1; row >= 0; row--) {
-        for (int col = 0; col < size; col++) {
+    for (int row = rows - 1; row >= 0; row--) {
+        for (int col = 0; col < columns; col++) {
             switch (grid[row][col].pType) {
             case SAND:
                 updateSand(row, col);
@@ -80,13 +80,13 @@ void Grid::updateSand(uint32_t row, uint32_t col) {
         grid[row][col].hasBeenUpdated = false;
         return;
     }
-    if (row < size - 1) {
+    if (row < rows - 1) {
         if (slotIsEmpty(row + 1, col) || slotContains(WATER, row + 1, col)) {
             moveFromTo(row, col, row + 1, col);
         } else if (col > 0 &&
         (slotIsEmpty(row + 1, col - 1) || slotContains(WATER, row + 1, col - 1))) {
             moveFromTo(row, col, row + 1, col - 1);
-        } else if (col < size - 1 &&
+        } else if (col < columns - 1 &&
         (slotIsEmpty(row + 1, col + 1) || slotContains(WATER, row + 1, col + 1))) {
             moveFromTo(row, col, row + 1, col + 1);
         }
@@ -99,22 +99,22 @@ void Grid::updateWater(uint32_t row, uint32_t col) {
         grid[row][col].hasBeenUpdated = false;
         return;
     }
-    if (row < size - 1) {
+    if (row < rows - 1) {
         if (slotIsEmpty(row + 1, col)) {
             moveFromTo(row, col, row + 1, col);
         } else if (col > 0 && slotIsEmpty(row + 1, col - 1)) {
             moveFromTo(row, col, row + 1, col - 1);
-        } else if (col < size - 1 && slotIsEmpty(row + 1, col + 1)) {
+        } else if (col < columns - 1 && slotIsEmpty(row + 1, col + 1)) {
             moveFromTo(row, col, row + 1, col + 1);
         } else if (col > 0 && slotIsEmpty(row, col - 1)) {
             moveFromTo(row, col, row, col - 1);
-        } else if (col < size - 1 && slotIsEmpty(row, col + 1)) {
+        } else if (col < columns - 1 && slotIsEmpty(row, col + 1)) {
             moveFromTo(row, col, row, col + 1);
         }
     } else {
         if (col > 0 && slotIsEmpty(row, col - 1)) {
             moveFromTo(row, col, row, col - 1);
-        } else if (col < size - 1 && slotIsEmpty(row, col + 1)) {
+        } else if (col < columns - 1 && slotIsEmpty(row, col + 1)) {
             moveFromTo(row, col, row, col + 1);
         }
     }
@@ -135,29 +135,29 @@ void Grid::updateFire(uint32_t row, uint32_t col) {
         p->hasBeenUpdated = false;
         return;
     }
-    if (row > 0 && row < size - 1) {
+    if (row > 0 && row < rows - 1) {
         if (slotContains(WOOD, row + 1, col)) {
             copyFromTo(row, col, row + 1, col);
         }
         if (col > 0 && slotContains(WOOD, row + 1, col - 1)) {
             copyFromTo(row, col, row + 1, col - 1);
         }
-        if (col < size - 1 && slotContains(WOOD, row + 1, col + 1)) {
+        if (col < columns - 1 && slotContains(WOOD, row + 1, col + 1)) {
             copyFromTo(row, col, row + 1, col + 1);
         }
     }
-    if (row < size - 1) {
+    if (row < rows - 1) {
         if (col > 0 && slotContains(WOOD, row - 1, col - 1)) {
             copyFromTo(row, col, row - 1, col - 1);
         }
-        if (col < size - 1 && slotContains(WOOD, row - 1, col + 1)) {
+        if (col < columns - 1 && slotContains(WOOD, row - 1, col + 1)) {
             copyFromTo(row, col, row - 1, col + 1);
         }
     }
     if (col > 0 && slotContains(WOOD, row, col - 1)) {
         copyFromTo(row, col, row, col - 1);
     }
-    if (col < size - 1 && slotContains(WOOD, row, col + 1)) {
+    if (col < columns - 1 && slotContains(WOOD, row, col + 1)) {
         copyFromTo(row, col, row, col + 1);
     }
     if (!p->hasBeenUpdated && p->lifeTime == 0) {
