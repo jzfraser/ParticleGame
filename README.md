@@ -32,8 +32,8 @@ Here are the steps I go through to build/run this easily
 
 ### Upcoming Additions (maybe):
 
-- Buttons to change particle type being drawn
+- Pausing and playing physics
 - Ability to erase particles
-- Hopefully slightly better visuals for fire
+- Hopefully slightly better visuals
 - Smoke particle
 - Acid particle
