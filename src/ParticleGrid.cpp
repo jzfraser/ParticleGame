@@ -1,5 +1,6 @@
 #include "ParticleGrid.hpp"
 #include "Constants.hpp"
+#include <algorithm>
 #include <iostream>
 
 ParticleGrid::ParticleGrid(uint16_t _width, uint16_t _height)
@@ -102,12 +103,14 @@ bool ParticleGrid::containsType(ParticleType t, uint16_t row, uint16_t col) {
 
 void ParticleGrid::moveFromTo(uint16_t fRow, uint16_t fCol, uint16_t tRow, uint16_t tCol) {
     grid[tRow][tCol].setType(grid[fRow][fCol].pType);
+    grid[tRow][tCol].velocity = grid[fRow][fCol].velocity;
     grid[fRow][fCol].setType(EMPTY);
     grid[tRow][tCol].hasBeenUpdated = true;
 }
 
 void ParticleGrid::copyFromTo(uint16_t fRow, uint16_t fCol, uint16_t tRow, uint16_t tCol) {
     grid[tRow][tCol].setType(grid[fRow][fCol].pType);
+    grid[tRow][tCol].velocity       = grid[fRow][fCol].velocity;
     grid[tRow][tCol].hasBeenUpdated = true;
 }
 
@@ -157,47 +160,64 @@ void ParticleGrid::updateVertices() {
 }
 
 void ParticleGrid::updateSand(uint16_t row, uint16_t col) {
-    if (row < height - 1) {
-        if (isEmpty(row + 1, col)) {
-            moveFromTo(row, col, row + 1, col);
-            grid[row + 1][col].hasBeenUpdated = true;
-        } else if (col > 0 && (isEmpty(row + 1, col - 1))) {
-            moveFromTo(row, col, row + 1, col - 1);
-            grid[row + 1][col - 1].hasBeenUpdated = true;
-        } else if (col < width - 1 && (isEmpty(row + 1, col + 1))) {
-            moveFromTo(row, col, row + 1, col + 1);
-            grid[row + 1][col + 1].hasBeenUpdated = true;
+    Particle* p = &grid[row][col];
+    if (p->hasBeenUpdated)
+        return;
+    p->velocity.y = std::clamp(p->velocity.y + (dt * GRAVITY), -10.f, 10.f);
+    for (int dist = static_cast<int>(p->velocity.y); dist > 0; dist--) {
+        if (row + dist < height - 1) {
+            if (isEmpty(row + dist, col)) {
+                moveFromTo(row, col, row + dist, col);
+                grid[row + dist][col].hasBeenUpdated = true;
+                return;
+            } else if (col > 0 && (isEmpty(row + dist, col - 1))) {
+                moveFromTo(row, col, row + dist, col - 1);
+                grid[row + dist][col - 1].hasBeenUpdated = true;
+                return;
+            } else if (col < width - 1 && (isEmpty(row + dist, col + 1))) {
+                moveFromTo(row, col, row + dist, col + 1);
+                grid[row + dist][col + 1].hasBeenUpdated = true;
+                return;
+            }
         }
     }
+    // reset velocity here
 }
 
 void ParticleGrid::updateWater(uint16_t row, uint16_t col) {
-    if (row < height - 1) {
-        if (isEmpty(row + 1, col)) {
-            moveFromTo(row, col, row + 1, col);
-            grid[row + 1][col].hasBeenUpdated = true;
-        } else if (col > 0 && isEmpty(row + 1, col - 1)) {
-            moveFromTo(row, col, row + 1, col - 1);
-            grid[row + 1][col - 1].hasBeenUpdated = true;
-        } else if (col < width - 1 && isEmpty(row + 1, col + 1)) {
-            moveFromTo(row, col, row + 1, col + 1);
-            grid[row + 1][col + 1].hasBeenUpdated = true;
-        } else if (col > 0 && isEmpty(row, col - 1)) {
-            moveFromTo(row, col, row, col - 1);
-            grid[row][col - 1].hasBeenUpdated = true;
-        } else if (col < width - 1 && isEmpty(row, col + 1)) {
-            moveFromTo(row, col, row, col + 1);
-            grid[row][col + 1].hasBeenUpdated = true;
-        }
-    } else {
-        if (col > 0 && isEmpty(row, col - 1)) {
-            moveFromTo(row, col, row, col - 1);
-            grid[row][col - 1].hasBeenUpdated = true;
-        } else if (col < width - 1 && isEmpty(row, col + 1)) {
-            moveFromTo(row, col, row, col + 1);
-            grid[row][col + 1].hasBeenUpdated = true;
+    Particle* p = &grid[row][col];
+    if (p->hasBeenUpdated)
+        return;
+    p->velocity.y = std::clamp(p->velocity.y + (dt * GRAVITY), -10.f, 10.f);
+    p->velocity.x = std::clamp(p->velocity.x + (dt * 5.f), -5.f, 5.f);
+
+    for (int dist = static_cast<int>(p->velocity.y); dist > 0; dist--) {
+        if (row + dist < height - 1) {
+            if (isEmpty(row + dist, col)) {
+                moveFromTo(row, col, row + dist, col);
+                grid[row + dist][col].hasBeenUpdated = true;
+                return;
+            } else if (col > 0 && (isEmpty(row + dist, col - 1))) {
+                moveFromTo(row, col, row + dist, col - 1);
+                grid[row + dist][col - 1].hasBeenUpdated = true;
+                return;
+            } else if (col < width - 1 && (isEmpty(row + dist, col + 1))) {
+                moveFromTo(row, col, row + dist, col + 1);
+                grid[row + dist][col + 1].hasBeenUpdated = true;
+                return;
+            }
         }
     }
+    for (int dist = static_cast<int>(p->velocity.x); dist > 0; dist--) {
+        if (col - dist > 0 && isEmpty(row, col - dist)) {
+            moveFromTo(row, col, row, col - dist);
+            grid[row][col - dist].hasBeenUpdated = true;
+        } else if (col + dist < width - 1 && isEmpty(row, col + dist)) {
+            moveFromTo(row, col, row, col + dist);
+            grid[row][col + dist].hasBeenUpdated = true;
+        }
+    }
+    // reset velocity here
 }
 
 void ParticleGrid::updateWood(uint16_t row, uint16_t col) {
@@ -205,11 +225,9 @@ void ParticleGrid::updateWood(uint16_t row, uint16_t col) {
 }
 
 void ParticleGrid::updateFire(uint16_t row, uint16_t col) {
-    if (row < 0 || row >= height)
-        return;
-    if (col < 0 || col >= width)
-        return;
     Particle* p = &grid[row][col];
+    if (p->hasBeenUpdated)
+        return;
     if (!p->hasBeenUpdated && p->lifeTime == 0) {
         p->setType(EMPTY);
         return;

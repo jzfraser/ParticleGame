@@ -3,14 +3,14 @@
 Particle::Particle(ParticleType t) {
     pType          = t;
     hasBeenUpdated = false;
-    velocity       = sf::Vector2i(0, 0);
+    velocity       = sf::Vector2f(0.f, 0.f);
     setType(pType);
 }
 
 Particle::Particle() {
     pType          = EMPTY;
     hasBeenUpdated = false;
-    velocity       = sf::Vector2i(0, 0);
+    velocity       = sf::Vector2f(0.f, 0.f);
     setType(pType);
 }
 
@@ -32,6 +32,7 @@ void Particle::setType(ParticleType t) {
     case EMPTY:
     default:
         lifeTime = 0;
+        velocity = sf::Vector2f(0.f, 0.f);
         break;
     }
 }
