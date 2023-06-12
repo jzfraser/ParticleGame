@@ -8,6 +8,7 @@ public:
 
     ParticleGrid(uint16_t _width, uint16_t _height);
     ~ParticleGrid();
+    void clearParticles();
     void update(float _dt);
     void createP(ParticleType t, uint16_t row, uint16_t col);
     void readyParticles();

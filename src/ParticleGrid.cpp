@@ -22,9 +22,18 @@ ParticleGrid::~ParticleGrid() {
     delete[] grid;
 }
 
+void ParticleGrid::clearParticles() {
+    for (int16_t row = height - 1; row >= 0; row--) {
+        for (uint16_t col = 0; col < width; col++) {
+            grid[row][col].setType(EMPTY);
+        }
+    }
+}
+
 void ParticleGrid::update(float _dt) {
     dt = _dt;
-    for (int16_t row = 0; row < height; row++) {
+    // for (int16_t row = 0; row < height; row++) {
+    for (int16_t row = height - 1; row >= 0; row--) {
         for (uint16_t col = 0; col < width; col++) {
             if (grid[row][col].hasBeenUpdated)
                 continue;
@@ -51,6 +60,10 @@ void ParticleGrid::update(float _dt) {
 }
 
 void ParticleGrid::createP(ParticleType t, uint16_t row, uint16_t col) {
+    if (row < 0 || row >= height)
+        return;
+    if (col < 0 || col >= width)
+        return;
     if (isEmpty(row, col)) {
         grid[row][col].setType(t);
         numParticles++;
@@ -88,13 +101,14 @@ bool ParticleGrid::containsType(ParticleType t, uint16_t row, uint16_t col) {
 }
 
 void ParticleGrid::moveFromTo(uint16_t fRow, uint16_t fCol, uint16_t tRow, uint16_t tCol) {
-    ParticleType temp = grid[tRow][tCol].pType;
     grid[tRow][tCol].setType(grid[fRow][fCol].pType);
-    grid[fRow][fCol].setType(temp);
+    grid[fRow][fCol].setType(EMPTY);
+    grid[tRow][tCol].hasBeenUpdated = true;
 }
 
 void ParticleGrid::copyFromTo(uint16_t fRow, uint16_t fCol, uint16_t tRow, uint16_t tCol) {
     grid[tRow][tCol].setType(grid[fRow][fCol].pType);
+    grid[tRow][tCol].hasBeenUpdated = true;
 }
 
 void ParticleGrid::updateVertices() {
@@ -144,20 +158,17 @@ void ParticleGrid::updateVertices() {
 
 void ParticleGrid::updateSand(uint16_t row, uint16_t col) {
     if (row < height - 1) {
-        if (isEmpty(row + 1, col) || containsType(WATER, row + 1, col)) {
+        if (isEmpty(row + 1, col)) {
             moveFromTo(row, col, row + 1, col);
             grid[row + 1][col].hasBeenUpdated = true;
-        } else if (col > 0 &&
-            (isEmpty(row + 1, col - 1) || containsType(WATER, row + 1, col - 1))) {
+        } else if (col > 0 && (isEmpty(row + 1, col - 1))) {
             moveFromTo(row, col, row + 1, col - 1);
             grid[row + 1][col - 1].hasBeenUpdated = true;
-        } else if (col < width - 1 &&
-            (isEmpty(row + 1, col + 1) || containsType(WATER, row + 1, col + 1))) {
+        } else if (col < width - 1 && (isEmpty(row + 1, col + 1))) {
             moveFromTo(row, col, row + 1, col + 1);
             grid[row + 1][col + 1].hasBeenUpdated = true;
         }
     }
-    grid[row][col].hasBeenUpdated = true;
 }
 
 void ParticleGrid::updateWater(uint16_t row, uint16_t col) {
@@ -187,7 +198,6 @@ void ParticleGrid::updateWater(uint16_t row, uint16_t col) {
             grid[row][col + 1].hasBeenUpdated = true;
         }
     }
-    grid[row][col].hasBeenUpdated = true;
 }
 
 void ParticleGrid::updateWood(uint16_t row, uint16_t col) {
@@ -195,12 +205,16 @@ void ParticleGrid::updateWood(uint16_t row, uint16_t col) {
 }
 
 void ParticleGrid::updateFire(uint16_t row, uint16_t col) {
+    if (row < 0 || row >= height)
+        return;
+    if (col < 0 || col >= width)
+        return;
     Particle* p = &grid[row][col];
-    if (p->lifeTime == 0) {
+    if (!p->hasBeenUpdated && p->lifeTime == 0) {
         p->setType(EMPTY);
         return;
     }
-    if (row > 0 && row < height - 1) {
+    if (row < height - 1) {
         if (containsType(WOOD, row + 1, col)) {
             copyFromTo(row, col, row + 1, col);
         }
@@ -211,7 +225,10 @@ void ParticleGrid::updateFire(uint16_t row, uint16_t col) {
             copyFromTo(row, col, row + 1, col + 1);
         }
     }
-    if (row < width - 1) {
+    if (row > 0 && col < width - 1) {
+        if (containsType(WOOD, row - 1, col)) {
+            copyFromTo(row, col, row - 1, col);
+        }
         if (col > 0 && containsType(WOOD, row - 1, col - 1)) {
             copyFromTo(row, col, row - 1, col - 1);
         }
@@ -225,11 +242,7 @@ void ParticleGrid::updateFire(uint16_t row, uint16_t col) {
     if (col < width - 1 && containsType(WOOD, row, col + 1)) {
         copyFromTo(row, col, row, col + 1);
     }
-    if (!p->hasBeenUpdated && p->lifeTime == 0) {
-        grid[row][col].setType(EMPTY);
-    }
     if (p->lifeTime > 0) {
         p->lifeTime--;
     }
-    grid[row][col].hasBeenUpdated = true;
 }

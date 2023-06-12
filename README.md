@@ -7,6 +7,10 @@ It is a work in progress, but already shows off a few different particle types t
 basic rules they follow. Not meant to be a full functioning simulator, but rather a way for me
 to learn more C++ and SFML.
 
+### Keybinds
+
+- c : clear all particles
+
 ### Prerequisites
 
 - C++, C/C++ compiler, cmake, SFML
@@ -28,7 +32,7 @@ Here are the steps I go through to build/run this easily
 - Sand: Falls down and spreads out
 - Water: Flows down and to the sides
 - Wood: Stationary and flammable
-- Fire: Burns up any flammable particles nearby
+- Fire: Burns up flammable particles nearby
 
 ### Upcoming Additions (maybe):
 
