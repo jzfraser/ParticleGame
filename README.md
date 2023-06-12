@@ -9,6 +9,8 @@ to learn more C++ and SFML.
 
 ### Keybinds
 
+- left click : spawn particles around mouse
+- scroll up/down : increase/decrease particle spawn radius
 - c : clear all particles
 
 ### Prerequisites
