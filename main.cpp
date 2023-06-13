@@ -25,6 +25,7 @@ void spawnParticles(ParticleGrid* world, ParticleType t, int x, int y) {
         int32_t mpy = std::clamp(row + ry, 0.f, WORLD_HEIGHT - 1.f);
         world->createP(t, mpy, mpx);
     }
+    // world->createP(t, row, col);
 }
 
 void createButtons(Button* btns, sf::Font& font) {
@@ -91,7 +92,8 @@ int main() {
                 window.close();
                 break;
             case sf::Event::KeyPressed:
-                world.clearParticles();
+                if (event.key.code == sf::Keyboard::C)
+                    world.clearParticles();
                 break;
             case sf::Event::MouseWheelScrolled: {
                 if (event.type == sf::Event::MouseWheelScrolled &&

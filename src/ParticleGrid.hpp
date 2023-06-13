@@ -17,8 +17,8 @@ private:
     const uint16_t width;
     const uint16_t height;
     sf::VertexArray particles;
-    uint32_t numParticles;
     float dt;
+    int updateDirection;
 
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 

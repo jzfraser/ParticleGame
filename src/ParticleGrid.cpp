@@ -7,8 +7,8 @@ ParticleGrid::ParticleGrid(uint16_t _width, uint16_t _height)
 : width(_width),
   height(_height),
   particles(sf::Quads, width * height * 4),
-  numParticles(0),
-  dt(0) {
+  dt(0),
+  updateDirection(1) {
     grid = new Particle*[height];
     for (uint16_t row = 0; row < height; row++) {
         grid[row] = new Particle[width];
@@ -33,9 +33,9 @@ void ParticleGrid::clearParticles() {
 
 void ParticleGrid::update(float _dt) {
     dt = _dt;
-    // for (int16_t row = 0; row < height; row++) {
     for (int16_t row = height - 1; row >= 0; row--) {
-        for (uint16_t col = 0; col < width; col++) {
+        for (uint16_t col = updateDirection == 1 ? 0 : width - 1; col < width && col >= 0;
+             updateDirection == 1 ? col++ : col--) {
             if (grid[row][col].hasBeenUpdated)
                 continue;
             switch (grid[row][col].pType) {
@@ -58,6 +58,7 @@ void ParticleGrid::update(float _dt) {
         }
     }
     updateVertices();
+    updateDirection *= -1;
 }
 
 void ParticleGrid::createP(ParticleType t, uint16_t row, uint16_t col) {
@@ -67,7 +68,7 @@ void ParticleGrid::createP(ParticleType t, uint16_t row, uint16_t col) {
         return;
     if (isEmpty(row, col)) {
         grid[row][col].setType(t);
-        numParticles++;
+        grid[row][col].velocity = sf::Vector2f(0.0f, 1.0f);
     }
 }
 
@@ -160,64 +161,83 @@ void ParticleGrid::updateVertices() {
 }
 
 void ParticleGrid::updateSand(uint16_t row, uint16_t col) {
-    Particle* p = &grid[row][col];
-    if (p->hasBeenUpdated)
-        return;
+    Particle* p   = &grid[row][col];
     p->velocity.y = std::clamp(p->velocity.y + (dt * GRAVITY), -10.f, 10.f);
-    for (int dist = static_cast<int>(p->velocity.y); dist > 0; dist--) {
-        if (row + dist < height - 1) {
-            if (isEmpty(row + dist, col)) {
-                moveFromTo(row, col, row + dist, col);
-                grid[row + dist][col].hasBeenUpdated = true;
-                return;
-            } else if (col > 0 && (isEmpty(row + dist, col - 1))) {
-                moveFromTo(row, col, row + dist, col - 1);
-                grid[row + dist][col - 1].hasBeenUpdated = true;
-                return;
-            } else if (col < width - 1 && (isEmpty(row + dist, col + 1))) {
-                moveFromTo(row, col, row + dist, col + 1);
-                grid[row + dist][col + 1].hasBeenUpdated = true;
-                return;
+    int bound     = static_cast<int>(p->velocity.y);
+    uint16_t r    = row;
+    for (int dist = 1; dist <= bound; dist++) {
+        if (r + dist < height) {
+            if (isEmpty(r + dist, col)) {
+                moveFromTo(r, col, r + dist, col);
+                r += dist;
+            } else {
+                p->velocity = sf::Vector2f(0.f, 1.f);
+                break;
             }
         }
     }
-    // reset velocity here
+    if (!grid[r][col].hasBeenUpdated) {
+        if (row + 1 < height) {
+            if (col > 0 && isEmpty(row + 1, col - 1)) {
+                moveFromTo(row, col, row + 1, col - 1);
+            } else if (col < width && isEmpty(row + 1, col + 1)) {
+                moveFromTo(row, col, row + 1, col + 1);
+            }
+        }
+    }
 }
 
 void ParticleGrid::updateWater(uint16_t row, uint16_t col) {
-    Particle* p = &grid[row][col];
-    if (p->hasBeenUpdated)
-        return;
+    Particle* p   = &grid[row][col];
     p->velocity.y = std::clamp(p->velocity.y + (dt * GRAVITY), -10.f, 10.f);
-    p->velocity.x = std::clamp(p->velocity.x + (dt * 5.f), -5.f, 5.f);
+    p->velocity.x = std::clamp(p->velocity.x + (dt * 5.f), -6.f, 6.f);
 
-    for (int dist = static_cast<int>(p->velocity.y); dist > 0; dist--) {
-        if (row + dist < height - 1) {
-            if (isEmpty(row + dist, col)) {
-                moveFromTo(row, col, row + dist, col);
-                grid[row + dist][col].hasBeenUpdated = true;
-                return;
-            } else if (col > 0 && (isEmpty(row + dist, col - 1))) {
-                moveFromTo(row, col, row + dist, col - 1);
-                grid[row + dist][col - 1].hasBeenUpdated = true;
-                return;
-            } else if (col < width - 1 && (isEmpty(row + dist, col + 1))) {
-                moveFromTo(row, col, row + dist, col + 1);
-                grid[row + dist][col + 1].hasBeenUpdated = true;
-                return;
+    int yBound = static_cast<int>(p->velocity.y);
+    uint16_t r = row;
+    for (int dist = 0; dist <= yBound; dist++) {
+        if (r + dist < height) {
+            if (isEmpty(r + dist, col)) {
+                moveFromTo(r, col, r + dist, col);
+                r += dist;
             }
         }
     }
-    for (int dist = static_cast<int>(p->velocity.x); dist > 0; dist--) {
-        if (col - dist > 0 && isEmpty(row, col - dist)) {
-            moveFromTo(row, col, row, col - dist);
-            grid[row][col - dist].hasBeenUpdated = true;
-        } else if (col + dist < width - 1 && isEmpty(row, col + dist)) {
-            moveFromTo(row, col, row, col + dist);
-            grid[row][col + dist].hasBeenUpdated = true;
+
+    int direction = rand() % 2 == 0 ? 1 : -1;
+    uint16_t c    = col;
+    if (!grid[r][col].hasBeenUpdated) {
+        if (row + 1 < height) {
+            int move = 1 * direction;
+            if (col + move >= 0 && col + move < width && (isEmpty(row + 1, col + move))) {
+                moveFromTo(row, col, row + 1, col + move);
+                c = col + move;
+            } else {
+                direction *= -1;
+                move = 1 * direction;
+                if (col + move >= 0 && col + move < width &&
+                    (isEmpty(row + 1, col + move))) {
+                    moveFromTo(row, col, row + 1, col + move);
+                    c = col + move;
+                }
+            }
         }
     }
-    // reset velocity here
+    if (!grid[row][c].hasBeenUpdated) {
+        int xBound = static_cast<int>(p->velocity.x);
+        c          = col;
+        r          = row;
+        for (int dist = 1; dist <= xBound; dist++) {
+            int move = dist * direction;
+            if (c + move >= 0 && c + move < width && isEmpty(r, c + move)) {
+                if (r + 1 < height && isEmpty(r + 1, c + move)) {
+                    moveFromTo(r, c, r + 1, c + move);
+                    c += move;
+                }
+                moveFromTo(r, c, r, c + move);
+                c += move;
+            }
+        }
+    }
 }
 
 void ParticleGrid::updateWood(uint16_t row, uint16_t col) {
